@@ -1,6 +1,7 @@
 package com.example.harry_potter_wiki.ui.charakters;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.harry_potter_wiki.R;
+import com.example.harry_potter_wiki.adapter.AdapterCharakter;
 import com.example.harry_potter_wiki.model.Charakter;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -24,24 +26,26 @@ public class CharaktersFragment extends Fragment {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private CharaktersViewModel charaktersViewModel;
-
     private RecyclerView recyclerRecipe;
-    private AdapterRecipe adapterRecipe;
+    private AdapterCharakter adapterCharakter;
     private List<Charakter> charakters = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        charaktersViewModel =
-                ViewModelProviders.of(this).get(CharaktersViewModel.class);
         View root = inflater.inflate(R.layout.fragment_charakters, container, false);
         recyclerRecipe = root.findViewById(R.id.list_charakter);
-        charaktersViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
         return root;
+    }
+    public void getCharakter(){
+        db.collection("Charakters").get()
+                .addOnCompleteListener(task ->{
+                    if(task.isSuccessful()){
+                        charakters.clear();
+                        charakters.addAll(task.getResult().toObjects(Charakter.class));
+                        adapterCharakter.notifyDataSetChanged();
+                    }else {
+                        Log.w("Charakter", "Error getting documents.", task.getException());
+                    }
+                });
     }
 }
